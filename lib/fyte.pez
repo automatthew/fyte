@@ -35,14 +35,19 @@ hex ( display numerics in hex )
 
 ( classname -- descriptor)
 : ref_descriptor
-	here >r
-	dup strlen dup -rot
-	2 + allot
-	JReference r@ s!
-	r@ strcat
+	dup strlen dup -rot 
+	2 + malloc >r
+	76 r@ c!
+	( classname ) r@ 1 + s!
 	59 swap
-	1 + r@ +
-	c!
+	1 + r@ + c!
+	r>
+;
+
+: s+ 
+	2dup strlen swap strlen + 1 + malloc dup >r ( allocate the string )
+	rot swap s! ( copy the first string )
+	r@ strcat ( concat the second )
 	r>
 ;
 
@@ -67,7 +72,7 @@ hex ( display numerics in hex )
 
 ( class_name -- fd )
 : open_class_file 
-	extension sappend 
+	extension s+ 
 	o_rdwr o_creat or o_trunc or 0666 open ;
 
 : close_file close 1 >output drop ;
