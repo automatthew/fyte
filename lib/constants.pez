@@ -1,0 +1,42 @@
+0xcafebabe constant magic 
+50 constant majorversion
+0 constant minorversion
+
+# access flags
+0x0001 constant ACC_PUBLIC
+0x0010 constant ACC_FINAL
+0x0020 constant ACC_SUPER
+0x0200 constant ACC_INTERFACE
+0x0400 constant ACC_ABSTRACT
+
+# type identifiers
+"B"	constant Jbyte
+"C"	constant Jchar
+"D"	constant Jdouble
+"F"	constant Jfloat
+"I"	constant Jint
+"J"	constant Jlong
+"S"	constant Jshort
+"Z"	constant Jboolean
+
+# Constant pool tags
+
+7  constant constant_class_tag
+9  constant constant_fieldref_tag
+10 constant constant_methodref_tag
+11 constant constant_interfacemethodref_tag
+8  constant constant_string_tag
+3  constant constant_integer_tag
+4  constant constant_float_tag
+5  constant constant_long_tag
+6  constant constant_double_tag
+12 constant constant_nameandtype_tag
+1  constant constant_utf8_tag
+
+
+"java/lang/Object" constant JObject
+
+".class" constant extension
+
+
+

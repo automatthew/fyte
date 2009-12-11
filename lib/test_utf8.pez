@@ -1,0 +1,3 @@
+"happy go lucky" utf8_struct
+dup utf8_len . cr
+utf8_str puts

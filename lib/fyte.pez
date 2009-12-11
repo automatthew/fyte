@@ -1,40 +1,18 @@
 #! /usr/bin/env pez
 ( http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html )
 
-
+# SETUP
 hex ( display numerics in hex )
 
-0xcafebabe constant magic 
-50 constant majorversion
-0 constant minorversion
-
-# access flags
-0x0001 constant ACC_PUBLIC
-0x0010 constant ACC_FINAL
-0x0020 constant ACC_SUPER
-0x0200 constant ACC_INTERFACE
-0x0400 constant ACC_ABSTRACT
-
-# type identifiers
-"B"	constant Jbyte
-"C"	constant Jchar
-"D"	constant Jdouble
-"F"	constant Jfloat
-"I"	constant Jint
-"J"	constant Jlong
-"S"	constant Jshort
-"Z"	constant Jboolean
-"L" constant JReference
-# L<classname>;	 reference	 an instance of class <classname>
-# [	 reference	 one array dimension
-
-"java/lang/Object" constant JObject
+"util.pez" load drop
+"constants.pez" load drop
+"structs.pez" load drop
 
 
-".class" constant extension
 
-( classname -- descriptor)
-: ref_descriptor
+# Type Descriptors
+
+: Jreference ( classname -- descriptor)
 	dup strlen dup -rot 
 	2 + malloc >r
 	76 r@ c!
@@ -44,47 +22,52 @@ hex ( display numerics in hex )
 	r>
 ;
 
-: str+ 
-	2dup strlen swap strlen + 1 + malloc dup >r ( allocate the string )
-	rot swap s! ( copy the first string )
-	r@ strcat ( concat the second )
-	r>
+
+: ary_desc ( count -- str)
+	dup >r str_malloc
+	91 ( [ ) swap
+	r> 0
+		do 2dup i + c! loop
+	swap drop
+; 
+
+: Jarray ( descriptor dimension -- descriptor)
+	ary_desc swap str+
 ;
 
-( -- pointer)
-: stack_p  this-pez stack> drop 2 cells - ;
+# File operations
 
-( nth-byte -- address)
-: stackbyte_p this-pez stack> drop 3 cells - + ;
-
-( value len -- )
-: stack_write 
-	dup >r ( store a copy of the length on the rstack )
-	4 swap - stackbyte_p ( calculate the offset and get the pointer)
-	r> write ( get the length from the rstack and write the bytes)
-	drop drop ( bytes-written value )
-;
-
-( value -- )
-: u4_write hton 4 stack_write ; ( hton is the function to make it big-endian)
-: u2_write hton 2 stack_write ;
-: u1_write hton 1 stack_write ;
-
-( class_name -- fd )
-: open_class_file 
+: open_class_file ( class_name -- fd )
 	extension str+ 
 	o_rdwr o_creat or o_trunc or 0666 open ;
 
+( fd -- )
 : close_file close 1 >output drop ;
 
-( class_name -- )
-: jvm_class
+
+: preamble ( -- address )
+	3 cells malloc dup >r
+	magic r@ !
+	minorversion r@ 1 cells + !
+	majorversion r@ 2 cells + !
+	r>
+;
+
+: write_preamble ( address -- )
+	dup >r @ u4
+	r@ 1 cells + @ u2
+	r> 2 cells + @ u2
+;
+
+: jvm_class ( class_name -- )
 	( keep a copy of the fd; set the output stream)
-	open_class_file dup >output 
-	magic u4_write
-	minorversion u2_write
-	majorversion u2_write
+	open_class_file dup >output
+	preamble write_preamble
+	2 u2 ( constant_pool_count )
+	"Matthew" utf8_struct utf8_write
+	
 	close_file
 ;
+
 
 

@@ -1,0 +1,40 @@
+# UTILITIES
+
+: str_malloc ( len -- str )  1 + malloc ;
+
+: 2strlen ( str str -- len )  2dup strlen swap strlen + ;
+
+: str+ ( str str -- str )
+	2strlen str_malloc >r ( allocate the string )
+	swap r@ s! ( copy the first string )
+	r@ strcat ( concat the second )
+	r>
+;
+
+: stackbyte_p ( nth-byte -- address)
+	this-pez stack> drop 3 cells - + ;
+
+: stack_write ( value len -- )
+	dup >r ( store a copy of the length on the rstack )
+	4 swap - stackbyte_p ( calculate the offset and get the pointer)
+	r> write ( get the length from the rstack and write the bytes)
+	drop drop ( bytes-written value )
+;
+
+: write_bigendian ( value  bytes -- )
+	>r hton r> stack_write ;
+
+( value -- add )
+: big-endian
+	4 malloc >r
+	hton r@ !
+	r>
+;
+
+( address -- )
+: u4 big-endian 4 write drop ;
+
+: u2 big-endian 2 +  2 write drop ;
+	
+: u1 big-endian 3 +  1 write drop ;
+

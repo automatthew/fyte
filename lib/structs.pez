@@ -1,0 +1,61 @@
+
+: constant_pool
+	66 cells malloc >r
+	64 r@ ! ( size of pool )
+	0 r@ ! ( index )
+	r>
+;
+
+( pool -- size )
+: pool_size  @ ;
+
+( pool -- num )
+: pool_index 1+ @ ;
+
+( pool -- num )
+: pool_index++
+	dup pool_index 1+ swap !
+;
+
+( pool -- add )
+: pool_data @ 2 + ;
+
+( item pool_data -- )
+: >>pool_data
+	
+;
+
+( item pool -- pool)
+: constant_pool_add
+	dup >r
+	pool_size r@ pool_index < if
+		
+		
+		r@ pool_index++
+	then
+	
+	r>
+;
+
+: utf8_struct ( str -- addr)
+	dup strlen
+	constant_utf8_tag
+	3 cells malloc >r
+	r@ !
+	r@ 1 cells + !
+	r@ 2 cells + !
+	r>
+;
+
+: utf8_len ( utf8 -- len ) 1 cells + ;
+: utf8_str ( utf8 -- str ) 2 cells + ;
+
+: utf8_write ( utf8 -- )
+	>r
+	r@ u1 @
+	r@ utf8_len @  u2
+	r@ utf8_str @ puts
+	r>
+;
+
+
