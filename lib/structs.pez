@@ -1,40 +1,46 @@
-
+( init_size -- addr)
 : constant_pool
-	66 cells malloc >r
-	64 r@ ! ( size of pool )
-	0 r@ ! ( index )
+	dup
+	2 + cells malloc >r
+	r@ ! ( size of pool )
+	r@ 2 cells + ( pointer to next slot) 
+	r@ 1 cells + ! ( store in the index )
 	r>
 ;
 
 ( pool -- size )
-: pool_size  @ ;
+: pool_max  @ ;
 
 ( pool -- num )
-: pool_index 1+ @ ;
+: pool_index 1 cells + ;
+
+( pool -- addr )
+: pool_data 2 cells + ;
 
 ( pool -- num )
-: pool_index++
-	dup pool_index 1+ swap !
+: pool_size
+	dup 
+	1 cells + @
+	swap - 2 cells - 1 cells /
 ;
 
-( pool -- add )
-: pool_data @ 2 + ;
-
-( item pool_data -- )
-: >>pool_data
-	
+( pool -- boolean )
+: pool_full?
+	dup 2@ swap   ( pool index size )
+	cells - 2 cells -         ( pool ptr )
+	<=
 ;
 
-( item pool -- pool)
+( item pool -- )
 : constant_pool_add
-	dup >r
-	pool_size r@ pool_index < if
-		
-		
-		r@ pool_index++
+	dup pool_index >r
+	pool_full? if
+		# something clever
+	else
+		r@ @ ! 				# store the item at the index
+		r> dup @
+		1 cells + swap ! 	# advance the index
 	then
-	
-	r>
 ;
 
 : utf8_struct ( str -- addr)

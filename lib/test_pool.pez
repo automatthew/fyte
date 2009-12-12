@@ -1,0 +1,48 @@
+"ok.pez" load drop
+
+: is_true -1 ok? ;
+: is_false 0 ok? ;
+
+: test_pool 128 constant_pool ;
+
+"constant pool creation and access" tests:
+
+test_pool
+	pool_max 128 ok?
+	
+test_pool
+	dup
+	pool_index >r
+	1 cells +   r> ok?
+	
+test_pool
+	dup
+	pool_index @ >r 
+	2 cells +  r> ok?
+
+test_pool
+	pool_size 0 ok?
+
+test_pool
+	dup 1 cells + >r
+	dup 16 cells + r@ !
+	pool_size 14 ok?
+
+test_pool
+	pool_full? is_false
+	
+test_pool
+	dup 1 cells + >r 			( keep a copy of the index addr on rstack )
+	dup dup @ 2 + cells + r@ !	( advance index pointer to max size)
+	dup pool_full? is_true
+	
+	dup dup @ 1 + cells + r> !	( advance index pointer to max - 1 size)
+	pool_full? is_false
+
+test_pool
+	dup dup "foo" swap constant_pool_add
+	pool_size 1 ok?
+	dup dup "bar" swap constant_pool_add
+	pool_size 2 ok?
+	pool_data @ "foo" sok?
+	
