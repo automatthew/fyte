@@ -1,0 +1,15 @@
+Fyte is a JVM bytecode assembler written in Pez, a 90s era Forth
+currently being rehabilitated.
+
+You can git Pez at git://github.com/pete/pez.git
+
+Building Pez should be stupid simple.  
+Pester Pete if it's not, 'cause I voted for CMake.
+
+At the moment, Pez doesn't support loadpaths or any such fineries,
+so you have to cd into fyte/lib to run anything.  No, nothing here is
+much worth running yet.
+
+First milestone is a dictionary of Forth words that write valid classfiles.
+Second milestone will be a DSL that resembles assembly language
+Third milestone will involve some sort of higher level DSL usable for compiling to bytecode.
