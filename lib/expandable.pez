@@ -1,0 +1,95 @@
+
+# Extent
+# 
+# |_end_|_index_|  |___|___|...|  |_next_|
+
+# helper
+
+: cell+ 1 cells + ;
+
+
+# Extent structure and creation
+
+: extent_end ( extent -- addr )
+	;
+
+: extent_index ( extent -- addr )
+	cell+ ;
+
+: extent_start ( extent -- addr )
+	2 cells + ;
+
+: extent_next ( extent1 -- extent2 )
+	extent_end @ ;
+
+: alloc_extent ( num -- extent end_addr )
+	3 + dup malloc
+	dup rot ( extent extent size )
+	1- cells + ( extent end_addr )
+;
+
+: new_extent ( size -- addr )
+	alloc_extent over ( ext end ext)
+	! ( extent )
+	dup cell+ dup cell+ ( extent ext_cur ext_start )
+	swap ! ( extent )
+	0 over extent_next !
+;
+
+: extent_size ( extent -- slot_count )
+	dup extent_end @ swap
+	- 2 cells -
+	1 cells / ;
+
+: extent_index++ ( extent -- )
+	extent_index  1 cells swap +! ;
+
+: cur_slot ( extent -- slot_addr )
+	cell+ @ ;
+
+: cur_slot! ( val extent -- )
+	dup >r
+	cell+ @ ! 
+	r> extent_index++
+;
+
+: extent_full? ( extent -- boolean )
+	dup extent_end @ swap
+	cur_slot =
+;
+
+: >>extent ( val extent -- val extent ok? )
+	dup extent_full? if
+		0
+	else
+		2dup
+		cur_slot!
+		-1 
+	then
+;
+
+
+# Expandable
+# 
+# |_last-extent_|_(first-extent)_|
+
+
+: last_extent ( expander -- addr )
+	 ;
+
+: last_extent! ( addr expander -- )
+	! ;
+
+: first_extent ( expander -- addr )
+	cell+ ;
+
+: expand ( expander -- )
+	dup last_extent @  ( exp ext1 )
+	dup extent_size ( exp ext1 size )
+	new_extent ( exp ext1 ext2 )
+	dup rot ( exp ext2 ext2 ext1  )
+	extent_next ! ( exp ext2 )
+	
+	
+;
+

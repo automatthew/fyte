@@ -1,0 +1,116 @@
+"ok.pez" load drop
+
+hex
+
+: test_extent
+	14 new_extent ;
+
+"Extent allocation and creation" tests:
+
+"alloc_extent returns the initial and final addresses"
+14 alloc_extent
+	16 cells - assert_eq
+endt
+
+"extent_end points to the last cell allocated"
+test_extent
+	dup
+	extent_end @
+	16 cells - assert_eq
+endt
+
+"extent_start is the third cell"
+test_extent
+	dup
+	extent_start
+	2 cells - assert_eq
+endt
+
+"extent_index points to extent_start"
+test_extent
+	dup extent_start swap
+	extent_index @ assert_eq
+endt
+
+"extent_next is 0"
+test_extent
+	extent_next @ 0 assert_eq
+endt
+
+"extent_size is the number of slots"
+test_extent
+	extent_size 14 assert_eq
+endt
+
+
+"Extent access" tests:
+
+"cur_slot is the address of the open slot"
+test_extent
+	dup
+	cur_slot
+	2 cells - assert_eq
+endt
+
+"cur_slot! writes to the open slot"
+test_extent
+	dup cur_slot swap ( slot ext )
+	666 swap ( slot 666 ext )
+	cur_slot! ( slot )
+	@ 666 assert_eq
+endt
+
+"extent_full? is false when the extent is not full"
+3 new_extent
+	dup
+	extent_full? assert_false
+	666 swap
+	2dup cur_slot!
+	2dup cur_slot!
+	swap drop
+	extent_full? assert_false
+endt
+
+"extent_full? is true when the extent is full"
+2 new_extent
+	666 swap
+	2dup cur_slot!
+	2dup cur_slot!
+	swap drop
+	extent_full? assert_true
+endt
+
+"extent! tries an append, returns ( *args -1 ) if room"
+2 new_extent
+	666 swap
+	2dup >>extent assert_true 2drop
+	2dup >>extent assert_true 2drop
+	swap drop
+	dup extent_start 0 cells + @ 666 assert_eq
+	extent_start 1 cells + @ 666 assert_eq
+endt
+
+">>extent tries an append, returns ( *args 0 ) if full"
+2 new_extent
+	>r
+ 	666 r@ >>extent assert_true 2drop
+	666 r@ >>extent assert_true 2drop
+	666 r@ >>extent assert_false
+	r> assert_eq 666 assert_eq
+endt
+
+
+ok_report
+
+
+
+
+
+
+
+
+
+
+
+
+

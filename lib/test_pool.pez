@@ -1,8 +1,5 @@
 "ok.pez" load drop
 
-: is_true -1 ok? ;
-: is_false 0 ok? ;
-
 : test_pool 128 constant_pool ;
 
 "constant pool creation and access" tests:
