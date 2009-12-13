@@ -100,9 +100,79 @@ endt
 endt
 
 
+"New expander" tests:
+
+"alloc_expander leaves correct end_addr"
+3 alloc_expander
+	swap 6 cells +  assert_eq
+endt
+
+"first_extent is the next cell"
+3 new_expander
+	dup first_extent
+	swap cell+  assert_eq
+endt
+
+"last_extent points to the next cell"
+3 new_expander
+	dup last_extent @
+	swap cell+  assert_eq
+endt
+
+"first extent is properly initialized"
+3 new_expander
+	first_extent >r
+	
+	r@ extent_index @
+	r@ 2 cells +  assert_eq
+	
+	r@ extent_next
+	r> 5 cells +  assert_eq
+endt
+
+"Expander access" tests:
+
+">>expander appends when last_extent is not full"
+3 new_expander
+	>r
+	666 r@ >>expander
+	667 r@ >>expander
+	668 r@ >>expander
+	r@ last_extent @ extent_start
+	dup @ 666 assert_eq
+	cell+ @ 667 assert_eq
+	r> drop
+endt
+
+">>expander chains a new extent when last_extent is full"
+2 new_expander
+	>r
+	666 r@ >>expander
+	667 r@ >>expander
+	
+	777 r@ >>expander
+	
+	r@ first_extent
+	extent_start @
+	666 assert_eq
+	
+	r@ last_extent @ 
+	extent_start @
+	777 assert_eq
+	
+	r@ first_extent extent_next @
+	r@ last_extent .s assert_eq
+	
+	r> drop
+endt
+
+
+
+
+
+
+
 ok_report
-
-
 
 
 

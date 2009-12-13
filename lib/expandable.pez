@@ -23,18 +23,25 @@
 	extent_end @ ;
 
 : alloc_extent ( num -- extent end_addr )
-	3 + dup malloc
+	cells 3 cells +
+	dup malloc
 	dup rot ( extent extent size )
-	1- cells + ( extent end_addr )
+	1 cells - +
 ;
 
-: new_extent ( size -- addr )
-	alloc_extent over ( ext end ext)
-	! ( extent )
+: init_extent ( ext end_addr -- extent )
+	over ! ( extent )
 	dup cell+ dup cell+ ( extent ext_cur ext_start )
 	swap ! ( extent )
 	0 over extent_next !
 ;
+
+: new_extent ( size -- addr )
+	alloc_extent init_extent
+;
+
+
+# Extent access
 
 : extent_size ( extent -- slot_count )
 	dup extent_end @ swap
@@ -68,6 +75,15 @@
 	then
 ;
 
+: extent_offset ( index extent -- val )
+	swap cells 2dup swap ( e ic ic e )
+	extent_size > if
+	# be clever
+	else ( e ic )
+		+
+	then
+;
+
 
 # Expandable
 # 
@@ -83,13 +99,63 @@
 : first_extent ( expander -- addr )
 	cell+ ;
 
-: expand ( expander -- )
-	dup last_extent @  ( exp ext1 )
-	dup extent_size ( exp ext1 size )
-	new_extent ( exp ext1 ext2 )
-	dup rot ( exp ext2 ext2 ext1  )
-	extent_next ! ( exp ext2 )
-	
-	
+: alloc_expander ( num -- exp end_addr)
+	cells 4 cells + dup malloc ( size exp )
+	dup rot ( exp exp size )
+	1 cells - + ( exp end_addr )
 ;
+
+: new_expander ( num -- expander )
+	alloc_expander over ( exp end_add exp )
+	first_extent swap ( exp extent end_add)
+	init_extent over ( exp ext exp )
+	last_extent!
+;
+
+: expand ( ext1 size -- ext2 )
+	new_extent ( ext1 ext2 )
+	dup rot ( ext2 ext2 ext1  )
+	extent_next ! ( ext2 ) 
+;
+
+: >>expander ( val expander -- )
+	dup -rot ( exp val exp )
+	last_extent @  ( exp val ext )
+	>>extent if
+		2drop drop
+	else ( exp val ext1 )
+		dup extent_size ( exp val ext1 size )
+		expand ( exp val ext2 )
+		dup -rot ( exp ext2 val ext2 )
+		>>extent 2drop drop
+		swap last_extent!
+	then	
+;
+
+# : nth_extent ( n expander -- extent )
+# 	first_extent ( n ext0)
+# 	extent_next @ ( n ext1 )
+# 	begin
+# 		2dup swap > 0
+# 		and 
+# 	while ( n e1 ) 
+# 		extent_next @ ( n e2)
+# 	repeat
+# 	
+# ;
+# 
+# : expander[] ( index exp -- val )
+# 	2dup ( i e i e)
+# 	first_extent extent_size ( i e i s )
+# 	2dup 
+# 	> if
+# 	else ( i e i s )
+# 		/mod ( i e rem quot )
+# 		
+# 	then
+# 	
+# 	r> 
+# ;
+
+
 
